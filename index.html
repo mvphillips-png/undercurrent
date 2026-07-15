@@ -173,6 +173,24 @@
     .guide{margin-top:48px;padding-top:36px}
     .guide-forces{grid-template-columns:1fr}
   }
+
+  .attach{margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .attach-btn{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+    background:rgba(255,255,255,.06);color:var(--ink2);border:1px dashed var(--card-bd);
+    border-radius:12px;padding:10px 15px;font-family:'Inter',sans-serif;font-size:13.5px;
+    font-weight:500;transition:color .2s,background .2s,border-color .2s}
+  .attach-btn:hover{color:var(--ink);background:rgba(255,255,255,.09);border-color:rgba(200,90,200,.5)}
+  .attach-hint{font-size:12px;color:var(--ink3)}
+  .attach.dragover .attach-btn{border-color:var(--acc1);color:var(--ink);background:rgba(178,75,214,.12)}
+  .thumb{position:relative;display:inline-block}
+  .thumb img{height:58px;border-radius:10px;border:1px solid var(--card-bd);display:block}
+  .thumb-x{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;
+    border:none;cursor:pointer;background:linear-gradient(135deg,var(--acc1),var(--acc2));
+    color:#fff;font-size:14px;font-weight:700;line-height:1;display:grid;place-items:center}
+  @media (max-width:520px){
+    .attach{gap:10px}
+    .attach-hint{display:none}
+  }
   html{-webkit-text-size-adjust:100%}
   @media (max-width:520px){
     .wrap{padding:34px 16px 72px}
@@ -193,8 +211,20 @@
   <p class="tagline">Drop in something that felt <b>off</b> — a group text, an email, a comment thread, a scene. It draws the hidden field: what's actually pulling on what.</p>
 
   <div class="console">
-    <div class="console-label"><span>Paste the moment</span><span id="count">0</span></div>
-    <textarea id="input" placeholder="Paste the thing. A conversation, a message that landed wrong, a moment you couldn't name..."></textarea>
+    <div class="console-label"><span>Paste or attach the moment</span><span id="count">0</span></div>
+    <textarea id="input" placeholder="Paste the thing. A conversation, a message that landed wrong, a moment you couldn't name... or attach a screenshot below."></textarea>
+    <div class="attach" id="attach">
+      <input type="file" id="file" accept="image/*" hidden>
+      <button class="attach-btn" id="attachBtn" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        Add a screenshot or photo
+      </button>
+      <span class="attach-hint">or paste / drop an image here</span>
+      <div class="thumb" id="thumb" hidden>
+        <img id="thumbImg" alt="attached image">
+        <button class="thumb-x" id="thumbX" type="button" aria-label="Remove image">×</button>
+      </div>
+    </div>
     <div class="row">
       <button class="btn btn-go" id="go" disabled>Read the Field</button>
       <button class="btn btn-ex" id="ex">Load example</button>
@@ -230,7 +260,7 @@
     <p class="guide-lede">There's what was said — and then there's what was actually going on. The weird pause. The enthusiasm that felt slightly wrong. The question nobody asked out loud. Undercurrent reads that second layer and maps it like a gravity field, because that's what it is: invisible forces, pulling on everyone in the room.</p>
 
     <div class="guide-how">
-      <div class="how-item"><span class="how-num">1</span><p><b>Paste a real moment.</b> A group text. An email that landed wrong. A thread that got weird. The more real, the better the reading.</p></div>
+      <div class="how-item"><span class="how-num">1</span><p><b>Paste a real moment.</b> A group text, an email that landed wrong, a thread that got weird — or attach a screenshot or photo and let it read the scene itself. The more real, the better the reading.</p></div>
       <div class="how-item"><span class="how-num">2</span><p><b>Read the field.</b> Each circle is a person or force — bigger circle, more weight. Each numbered arrow is something invisible acting between them; the numbers match the list right below the field.</p></div>
       <div class="how-item"><span class="how-num">3</span><p><b>Check the Gravity Pull.</b> One sentence naming what's really going on — then the Gravificer reads the whole board back to you and leaves you with the question underneath it.</p></div>
     </div>
@@ -271,7 +301,7 @@
       A <a href="https://quirkyflashchronicles.com" target="_blank" rel="noopener">Quirky Flash Chronicles</a> instrument &nbsp;·&nbsp; <b>Studio Bits of Gravity</b> &nbsp;·&nbsp; MVANNP
     </div>
     <div class="foot-legal">
-      Undercurrent&trade; and the Gravificer&trade; field-reading framework &copy; 2026 Morgan Vann Phillips, Studio Bits of Gravity. All rights reserved. Analyses are AI-generated interpretations for reflection and entertainment — not professional, psychological, or legal advice. Text you submit is processed to generate your reading and is not stored by this tool. By using this instrument you agree not to copy, resell, or misrepresent it or its output as your own work.
+      Undercurrent&trade; and the Gravificer&trade; field-reading framework &copy; 2026 Morgan Vann Phillips, Studio Bits of Gravity. All rights reserved. Analyses are AI-generated interpretations for reflection and entertainment — not professional, psychological, or legal advice. Text and images you submit are processed to generate your reading and are not stored by this tool. By using this instrument you agree not to copy, resell, or misrepresent it or its output as your own work.
     </div>
   </footer>
 </div>
@@ -297,8 +327,60 @@ const out = document.getElementById('out');
 
 input.addEventListener('input', () => {
   document.getElementById('count').textContent = input.value.length;
-  go.disabled = input.value.trim().length < 8;
+  refreshGo();
 });
+
+
+// ---------- image attachment ----------
+let attachedImage = null; // {media_type, data}
+const fileInput = document.getElementById('file');
+const attachBtn = document.getElementById('attachBtn');
+const attachZone = document.getElementById('attach');
+const thumb = document.getElementById('thumb');
+const thumbImg = document.getElementById('thumbImg');
+
+function refreshGo(){
+  go.disabled = !( attachedImage || input.value.trim().length >= 8 );
+}
+
+attachBtn.addEventListener('click', ()=> fileInput.click());
+fileInput.addEventListener('change', ()=>{ if(fileInput.files[0]) takeImage(fileInput.files[0]); fileInput.value=''; });
+
+document.addEventListener('paste', (e)=>{
+  const items = e.clipboardData && e.clipboardData.items;
+  if(!items) return;
+  for(const it of items){
+    if(it.type && it.type.startsWith('image/')){ e.preventDefault(); takeImage(it.getAsFile()); return; }
+  }
+});
+['dragover','dragenter'].forEach(ev=> attachZone.addEventListener(ev, e=>{ e.preventDefault(); attachZone.classList.add('dragover'); }));
+['dragleave','drop'].forEach(ev=> attachZone.addEventListener(ev, e=>{ e.preventDefault(); attachZone.classList.remove('dragover'); }));
+attachZone.addEventListener('drop', e=>{
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if(f && f.type.startsWith('image/')) takeImage(f);
+});
+document.getElementById('thumbX').addEventListener('click', ()=>{
+  attachedImage=null; thumb.hidden=true; refreshGo();
+});
+
+function takeImage(file){
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = ()=>{
+    const MAX = 1400;
+    let w=img.naturalWidth, h=img.naturalHeight;
+    const scale = Math.min(1, MAX/Math.max(w,h));
+    w=Math.round(w*scale); h=Math.round(h*scale);
+    const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+    cv.getContext('2d').drawImage(img,0,0,w,h);
+    const dataUrl = cv.toDataURL('image/jpeg', 0.85);
+    attachedImage = { media_type:'image/jpeg', data:dataUrl.split(',')[1] };
+    thumbImg.src = dataUrl; thumb.hidden=false;
+    URL.revokeObjectURL(url); refreshGo();
+  };
+  img.onerror = ()=>{ URL.revokeObjectURL(url); showError("That image couldn't be read. Try a different file."); };
+  img.src = url;
+}
 
 const LOAD_MSGS = [
   'Reading the field',
@@ -309,7 +391,7 @@ const LOAD_MSGS = [
 let loadTimer = null;
 function setLoading(on){
   loadEl.classList.toggle('on', on);
-  go.disabled = on || input.value.trim().length < 8;
+  if(on){ go.disabled = true; } else { refreshGo(); }
   if(on){
     let i=0; loadMsg.textContent = LOAD_MSGS[0];
     loadTimer = setInterval(()=>{ i=(i+1)%LOAD_MSGS.length; loadMsg.textContent = LOAD_MSGS[i]; }, 1400);
@@ -324,6 +406,7 @@ function buildPrompt(artifact){
 Read the artifact below and return a "gravity field": the people or forces present as BODIES, and the invisible forces between them as labeled arrows.
 
 RULES:
+- The artifact may be text, an image (a screenshot of a conversation, a photo of a scene or room, a document), or both. Read whatever is given. For images: read every visible message, name, reaction, and detail; for photos of physical scenes, read spatial arrangement, body language, and objects as forces.
 - Find what is beneath the surface, not the literal content. Name the unspoken thing.
 - 3 to 6 bodies. Keep labels to 1-3 words (a name, or a short noun for a force like "The Deadline" or "Her Silence").
 - 4 to 8 forces. Each force label is 2-6 words, sharp and specific — never generic.
@@ -348,19 +431,29 @@ Return ONLY valid JSON, no markdown, no preamble:
 
 ARTIFACT:
 """
-${artifact}
+${artifact || '(see attached image)'}
 """`;
 }
 
+function buildContent(){
+  const parts = [];
+  if(attachedImage){
+    parts.push({ type:'image', source:{ type:'base64', media_type:attachedImage.media_type, data:attachedImage.data } });
+  }
+  parts.push({ type:'text', text: buildPrompt(input.value.trim()) });
+  return parts;
+}
+
 async function readField(){
+  if(!attachedImage && input.value.trim().length < 8) return;
   clearError(); out.classList.remove('on'); setLoading(true);
   try{
     const res = await fetch(WORKER, {
       method:'POST',
       headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({
-        model: MODEL, max_tokens: 1600,
-        messages:[{ role:'user', content: buildPrompt(input.value.trim()) }]
+        model: MODEL, max_tokens: 2000,
+        messages:[{ role:'user', content: buildContent() }]
       })
     });
     if(!res.ok) throw new Error('The instrument could not reach the signal. Check the connection and try again.');
