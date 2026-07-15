@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Undercurrent — Gravificer Field Reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Exo+2:wght@200;300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --base:#04060a;
+    --panel:#0a0e16;
+    --panel2:#0d1420;
+    --line:#1a2436;
+    --ink:#e8f0ff;
+    --ink2:#7d8ba5;
+    --ink3:#48546b;
+    --cyan:#00d4ff;      /* pull */
+    --magenta:#ff2d78;   /* pressure */
+    --amber:#ffaa00;     /* avoidance */
+    --green:#00ff88;     /* performance */
+    --purple:#aa55ff;    /* tension */
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--base);color:var(--ink)}
+  body{
+    font-family:'Exo 2',sans-serif;font-weight:300;
+    min-height:100vh;line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      linear-gradient(rgba(20,30,48,.35) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(20,30,48,.35) 1px,transparent 1px),
+      radial-gradient(circle at 50% 0%,rgba(120,40,140,.14),transparent 60%);
+    background-size:44px 44px,44px 44px,100% 100%;
+  }
+  /* faint scanlines */
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:100;
+    background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.13) 3px,rgba(0,0,0,.13) 4px);
+    mix-blend-mode:overlay;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:40px 20px 90px}
+
+  /* ---- header ---- */
+  .eyebrow{
+    font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.28em;
+    color:var(--cyan);text-transform:uppercase;margin-bottom:18px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow::before{content:"";width:26px;height:1px;background:var(--cyan);opacity:.7}
+  h1{
+    font-family:'Orbitron',sans-serif;font-weight:900;
+    font-size:clamp(38px,11vw,72px);line-height:.94;letter-spacing:.02em;
+    text-transform:uppercase;margin-bottom:16px;
+    background:linear-gradient(180deg,#fff,#8fb6d6);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .tagline{
+    font-weight:200;font-size:clamp(15px,4vw,18px);color:var(--ink2);
+    max-width:520px;
+  }
+  .tagline b{color:var(--ink);font-weight:400}
+
+  /* ---- input ---- */
+  .console{
+    margin-top:38px;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:20px;
+  }
+  .console-label{
+    font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.2em;
+    color:var(--ink3);text-transform:uppercase;margin-bottom:12px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  textarea{
+    width:100%;min-height:150px;resize:vertical;
+    background:var(--base);border:1px solid var(--line);border-radius:9px;
+    color:var(--ink);font-family:'Exo 2',sans-serif;font-weight:300;font-size:15px;
+    line-height:1.6;padding:15px;outline:none;transition:border-color .2s;
+  }
+  textarea::placeholder{color:var(--ink3)}
+  textarea:focus{border-color:var(--cyan)}
+  .row{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
+  .btn{
+    flex:1;min-width:160px;cursor:pointer;border:none;
+    font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;
+    letter-spacing:.12em;text-transform:uppercase;
+    padding:15px 18px;border-radius:9px;transition:transform .12s,box-shadow .2s,opacity .2s;
+  }
+  .btn-go{
+    background:linear-gradient(120deg,var(--cyan),#0090c8);color:#00121a;
+    box-shadow:0 0 0 1px rgba(0,212,255,.4),0 8px 30px -10px rgba(0,212,255,.6);
+  }
+  .btn-go:hover{transform:translateY(-1px)}
+  .btn-go:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn-ex{
+    flex:0 0 auto;min-width:0;background:transparent;color:var(--ink2);
+    border:1px solid var(--line);
+  }
+  .btn-ex:hover{color:var(--ink);border-color:var(--ink3)}
+
+  /* ---- loading ---- */
+  .loading{display:none;margin-top:34px;text-align:center;
+    font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:.24em;
+    color:var(--cyan);text-transform:uppercase}
+  .loading.on{display:block}
+  .loading .dot{display:inline-block;width:7px;height:7px;border-radius:50%;
+    background:var(--cyan);margin-right:10px;animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+
+  .error{display:none;margin-top:26px;padding:15px 18px;border-radius:9px;
+    background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.35);
+    color:#ffb3cd;font-size:14px;font-weight:300}
+  .error.on{display:block}
+
+  /* ---- output ---- */
+  .field-out{display:none;margin-top:40px}
+  .field-out.on{display:block;animation:rise .5s ease both}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .situation{
+    font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:.06em;
+    color:var(--ink2);text-align:center;margin-bottom:6px;
+  }
+  .field-frame{
+    background:radial-gradient(circle at 50% 42%,rgba(15,22,38,.9),var(--panel));
+    border:1px solid var(--line);border-radius:16px;overflow:hidden;
+    padding:6px;
+  }
+  svg#field{width:100%;height:auto;display:block}
+
+  .legend{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;
+    margin-top:16px}
+  .legend span{font-family:'Share Tech Mono',monospace;font-size:10.5px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);
+    display:flex;align-items:center;gap:6px}
+  .legend i{width:16px;height:2px;border-radius:2px;display:inline-block}
+
+  .verdict{margin-top:30px;border-left:2px solid var(--amber);padding:4px 0 4px 18px}
+  .verdict .lab{font-family:'Share Tech Mono',monospace;font-size:11px;
+    letter-spacing:.24em;color:var(--amber);text-transform:uppercase;margin-bottom:8px}
+  .verdict p{font-family:'Orbitron',sans-serif;font-weight:500;
+    font-size:clamp(17px,4.8vw,22px);line-height:1.35;color:var(--ink)}
+
+  .banter{margin-top:26px;display:flex;flex-direction:column;gap:12px}
+  .line{display:flex;gap:12px;align-items:flex-start;
+    background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:13px 15px}
+  .who{flex:0 0 auto;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+    font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px}
+  .who.bird{background:rgba(255,45,120,.15);color:var(--magenta)}
+  .who.bug{background:rgba(0,255,136,.14);color:var(--green)}
+  .line p{font-size:15px;font-weight:300;color:var(--ink);padding-top:5px}
+  .line p b{font-weight:600;color:var(--ink2);font-family:'Share Tech Mono',monospace;
+    font-size:11px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:2px}
+
+  footer{margin-top:52px;text-align:center;font-family:'Share Tech Mono',monospace;
+    font-size:10px;letter-spacing:.2em;color:var(--ink3);text-transform:uppercase}
+  footer b{color:var(--ink2);font-weight:400}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">Gravificer Instrument · Field Reader</div>
+  <h1>Undercurrent</h1>
+  <p class="tagline">Drop in something that felt <b>off</b> — a group text, an email, a comment thread, a scene. It draws the hidden field: what's actually pulling on what.</p>
+
+  <div class="console">
+    <div class="console-label"><span>// Artifact In</span><span id="count">0</span></div>
+    <textarea id="input" placeholder="Paste the thing. A conversation, a message that landed wrong, a moment you couldn't name..."></textarea>
+    <div class="row">
+      <button class="btn btn-go" id="go" disabled>Read the Field</button>
+      <button class="btn btn-ex" id="ex">Load example</button>
+    </div>
+  </div>
+
+  <div class="loading" id="loading"><span class="dot"></span><span id="loadmsg">Reading the field</span></div>
+  <div class="error" id="error"></div>
+
+  <div class="field-out" id="out">
+    <div class="situation" id="situation"></div>
+    <div class="field-frame">
+      <svg id="field" viewBox="0 0 400 430" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="legend" id="legend"></div>
+
+    <div class="verdict">
+      <div class="lab">Gravity Pull</div>
+      <p id="verdict"></p>
+    </div>
+
+    <div class="banter">
+      <div class="line"><div class="who bird">BB</div><p><b>Baker Bird</b><span id="bird"></span></p></div>
+      <div class="line"><div class="who bug">BG</div><p><b>Bug</b><span id="bug"></span></p></div>
+    </div>
+  </div>
+
+  <footer>Quirky Flash Chronicles &nbsp;·&nbsp; <b>Studio Bits of Gravity</b> &nbsp;·&nbsp; MVANNP</footer>
+</div>
+
+<script>
+const WORKER = 'https://gravificer-proxy.mvphillips.workers.dev/';
+const MODEL  = 'claude-sonnet-4-6';
+
+const FORCE = {
+  pull:        { color:'#00d4ff', label:'Pull',        dash:'0'   },
+  pressure:    { color:'#ff2d78', label:'Pressure',    dash:'0'   },
+  avoidance:   { color:'#ffaa00', label:'Avoidance',   dash:'6 5' },
+  performance: { color:'#00ff88', label:'Performance', dash:'2 5' },
+  tension:     { color:'#aa55ff', label:'Tension',     dash:'8 4' }
+};
+
+const input = document.getElementById('input');
+const go = document.getElementById('go');
+const loadEl = document.getElementById('loading');
+const loadMsg = document.getElementById('loadmsg');
+const errEl = document.getElementById('error');
+const out = document.getElementById('out');
+
+input.addEventListener('input', () => {
+  document.getElementById('count').textContent = input.value.length;
+  go.disabled = input.value.trim().length < 8;
+});
+
+const LOAD_MSGS = [
+  'Reading the field',
+  'Mapping hidden forces',
+  'Separating signal from performance',
+  'Locating the pull'
+];
+let loadTimer = null;
+function setLoading(on){
+  loadEl.classList.toggle('on', on);
+  go.disabled = on || input.value.trim().length < 8;
+  if(on){
+    let i=0; loadMsg.textContent = LOAD_MSGS[0];
+    loadTimer = setInterval(()=>{ i=(i+1)%LOAD_MSGS.length; loadMsg.textContent = LOAD_MSGS[i]; }, 1400);
+  } else { clearInterval(loadTimer); }
+}
+function showError(msg){ errEl.textContent = msg; errEl.classList.add('on'); }
+function clearError(){ errEl.classList.remove('on'); }
+
+function buildPrompt(artifact){
+  return `You are UNDERCURRENT, a Gravificer field-reading instrument. You take any human artifact and reveal the invisible forces underneath it — the subtext, the unspoken, what is actually pulling on what.
+
+Read the artifact below and return a "gravity field": the people or forces present as BODIES, and the invisible forces between them as labeled arrows.
+
+RULES:
+- Find what is beneath the surface, not the literal content. Name the unspoken thing.
+- 3 to 6 bodies. Keep labels to 1-3 words (a name, or a short noun for a force like "The Deadline" or "Her Silence").
+- 4 to 8 forces. Each force label is 2-6 words, sharp and specific — never generic.
+- Every force has a "type", one of exactly: pull, pressure, avoidance, performance, tension.
+    pull = drawing toward, wanting, attachment
+    pressure = pushing, demanding, obligation
+    avoidance = pulling away, withdrawal, dodging
+    performance = acting a feeling that isn't real, playing a part
+    tension = unresolved friction, contradiction
+- "mass" (1-10) = how much this body dominates the situation. "strength" (1-10) = how strong the force is.
+- gravity_pull = ONE devastatingly clear sentence naming what is really going on beneath all of it.
+- Then two lines of reaction, in character:
+    Baker Bird = a red cardinal, big energy, leaps straight to the feeling, says the thing out loud.
+    Bug = the dry straight-man, names the uncomfortable truth underneath, deadpan.
+
+Return ONLY valid JSON, no markdown, no preamble:
+{
+  "situation": "one neutral line naming what this artifact is",
+  "bodies": [ { "id": "a", "label": "...", "mass": 7, "note": "what they secretly want, 3-6 words" } ],
+  "forces": [ { "from": "a", "to": "b", "type": "pressure", "label": "...", "strength": 7 } ],
+  "gravity_pull": "...",
+  "bird": "...",
+  "bug": "..."
+}
+
+ARTIFACT:
+"""
+${artifact}
+"""`;
+}
+
+async function readField(){
+  clearError(); out.classList.remove('on'); setLoading(true);
+  try{
+    const res = await fetch(WORKER, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        model: MODEL, max_tokens: 1600,
+        messages:[{ role:'user', content: buildPrompt(input.value.trim()) }]
+      })
+    });
+    if(!res.ok) throw new Error('The instrument could not reach the signal. Check the connection and try again.');
+    const data = await res.json();
+    let text = (data.content||[]).map(b => b.text || '').join('').trim();
+    text = text.replace(/^```(json)?/i,'').replace(/```$/,'').trim();
+    const parsed = JSON.parse(text);
+    render(parsed);
+  }catch(e){
+    showError(e.message.includes('JSON')
+      ? 'The field came back scrambled. Try reading it again.'
+      : e.message);
+  }finally{ setLoading(false); }
+}
+
+function render(d){
+  const svg = document.getElementById('field');
+  const cx=200, cy=222, R=138;
+  const bodies = d.bodies.slice(0,6);
+  const idx = {}; bodies.forEach((b,i)=> idx[b.id]=i);
+
+  // positions on a circle, first body at top
+  const pos = bodies.map((b,i)=>{
+    const ang = -Math.PI/2 + i*(2*Math.PI/bodies.length);
+    return { x: cx+R*Math.cos(ang), y: cy+R*Math.sin(ang), r: 15+(b.mass||5)*1.9, b };
+  });
+
+  let s = '';
+  // background field rings
+  for(let k=1;k<=3;k++){
+    s += `<circle cx="${cx}" cy="${cy}" r="${46*k}" fill="none" stroke="#16203400" stroke-width="1"/>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="${46*k}" fill="none" stroke="rgba(80,120,180,0.08)" stroke-width="1"/>`;
+  }
+  s += `<circle cx="${cx}" cy="${cy}" r="2.5" fill="rgba(140,170,210,.35)"/>`;
+
+  // arrowhead markers per force color
+  let defs = '<defs>';
+  Object.entries(FORCE).forEach(([k,v])=>{
+    defs += `<marker id="ah-${k}" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="${v.color}"/></marker>`;
+  });
+  defs += '</defs>';
+  s = defs + s;
+
+  // count parallel edges to offset curves
+  const seen = {};
+  (d.forces||[]).forEach(f=>{
+    const key = [f.from,f.to].sort().join('-');
+    seen[key] = (seen[key]||0);
+  });
+  const used = {};
+
+  (d.forces||[]).forEach(f=>{
+    if(idx[f.from]===undefined || idx[f.to]===undefined) return;
+    const A=pos[idx[f.from]], B=pos[idx[f.to]];
+    const key=[f.from,f.to].sort().join('-');
+    const parallel = seen[key]+1;
+    used[key]=(used[key]||0)+1;
+    const rank = used[key]-1;
+    // offset alternates outward for parallel/bidirectional edges
+    const offMag = parallel>1 ? (rank%2===0?1:-1)*(14+Math.floor(rank/2)*14) : 0;
+
+    const dx=B.x-A.x, dy=B.y-A.y, len=Math.hypot(dx,dy)||1;
+    const ux=dx/len, uy=dy/len;            // unit A->B
+    const px=-uy, py=ux;                    // perpendicular
+    const sx=A.x+ux*(A.r+3), sy=A.y+uy*(A.r+3);
+    const exx=B.x-ux*(B.r+7), eyy=B.y-uy*(B.r+7);
+    const mx=(sx+exx)/2 + px*offMag, my=(sy+eyy)/2 + py*offMag;
+
+    const conf = FORCE[f.type] || FORCE.tension;
+    const w = 1.4 + (f.strength||5)*0.42;
+    s += `<path d="M${sx.toFixed(1)},${sy.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${exx.toFixed(1)},${eyy.toFixed(1)}"
+      fill="none" stroke="${conf.color}" stroke-width="${w.toFixed(1)}" stroke-dasharray="${conf.dash}"
+      opacity="0.85" marker-end="url(#ah-${f.type in FORCE ? f.type : 'tension'})" stroke-linecap="round"/>`;
+
+    // label at bezier midpoint (t=0.5)
+    const lx = 0.25*sx + 0.5*mx + 0.25*exx;
+    const ly = 0.25*sy + 0.5*my + 0.25*eyy;
+    const lab = (f.label||'').toString();
+    const wpx = lab.length*5.4 + 12;
+    s += `<rect x="${(lx-wpx/2).toFixed(1)}" y="${(ly-9).toFixed(1)}" width="${wpx.toFixed(1)}" height="17" rx="5"
+      fill="#04060a" stroke="${conf.color}" stroke-opacity="0.4" stroke-width="1"/>`;
+    s += `<text x="${lx.toFixed(1)}" y="${(ly+3).toFixed(1)}" text-anchor="middle"
+      font-family="'Share Tech Mono',monospace" font-size="9.5" fill="${conf.color}"
+      letter-spacing="0.03em">${esc(lab)}</text>`;
+  });
+
+  // bodies on top
+  pos.forEach(p=>{
+    s += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${(p.r+7).toFixed(1)}"
+      fill="none" stroke="rgba(120,160,210,.12)" stroke-width="1"/>`;
+    s += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${p.r.toFixed(1)}"
+      fill="#0d1420" stroke="#8fb6d6" stroke-width="1.5"/>`;
+    s += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${p.r.toFixed(1)}"
+      fill="url(#bodyglow)" opacity="0.0"/>`;
+    // label
+    const nm=(p.b.label||'').toString();
+    s += `<text x="${p.x.toFixed(1)}" y="${(p.y+4).toFixed(1)}" text-anchor="middle"
+      font-family="'Orbitron',sans-serif" font-weight="700" font-size="11" fill="#e8f0ff">${esc(nm)}</text>`;
+    // note beneath body
+    if(p.b.note){
+      s += `<text x="${p.x.toFixed(1)}" y="${(p.y+p.r+13).toFixed(1)}" text-anchor="middle"
+        font-family="'Exo 2',sans-serif" font-size="9" fill="#7d8ba5">${esc(trim(p.b.note,26))}</text>`;
+    }
+  });
+
+  svg.innerHTML = s;
+
+  // situation + legend + text
+  document.getElementById('situation').textContent = '// ' + (d.situation||'field reading');
+  const types = [...new Set((d.forces||[]).map(f=>f.type).filter(t=>FORCE[t]))];
+  document.getElementById('legend').innerHTML = types.map(t=>
+    `<span><i style="background:${FORCE[t].color}"></i>${FORCE[t].label}</span>`).join('');
+  document.getElementById('verdict').textContent = d.gravity_pull||'';
+  document.getElementById('bird').textContent = d.bird||'';
+  document.getElementById('bug').textContent = d.bug||'';
+
+  out.classList.add('on');
+  out.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function trim(t,n){ t=String(t); return t.length>n ? t.slice(0,n-1)+'…' : t; }
+
+// ---- built-in example so it renders instantly ----
+const EXAMPLE = {
+  situation: "a group text planning a weekend trip",
+  bodies: [
+    { id:"dana",   label:"Dana",   mass:8, note:"wants everyone to stay in" },
+    { id:"marcus", label:"Marcus", mass:6, note:"already gone, won't say so" },
+    { id:"priya",  label:"Priya",  mass:4, note:"reading the room, softening it" },
+    { id:"trip",   label:"The Trip",mass:5, note:"nobody will call it off" }
+  ],
+  forces: [
+    { from:"dana",   to:"marcus", type:"pressure",    label:"keeps pinning down dates", strength:8 },
+    { from:"marcus", to:"dana",   type:"performance", label:"enthusiasm that won't commit", strength:8 },
+    { from:"marcus", to:"trip",   type:"avoidance",   label:"one foot already out", strength:7 },
+    { from:"dana",   to:"trip",   type:"pull",        label:"needs it to hold together", strength:7 },
+    { from:"priya",  to:"marcus", type:"pull",        label:"senses it, eases the ask", strength:4 },
+    { from:"priya",  to:"dana",   type:"tension",     label:"won't say what she sees", strength:5 }
+  ],
+  gravity_pull: "Marcus left three texts ago — everyone's still performing the trip as if he hasn't.",
+  bird: "Wait — nobody's actually going on this trip, are they?",
+  bug: "Marcus checked out at message four. The rest is choreography."
+};
+
+document.getElementById('ex').addEventListener('click', ()=>{
+  input.value = "Dana: ok FINAL dates — the 14th or the 21st, lock it in people!!\nMarcus: omg yes I'm SO in, either works, whatever you guys pick 🙌\nPriya: 14th is good for me. Marcus you sure? you said work was insane rn\nMarcus: no no it's fine I'll make it work, so excited\nDana: amazing. booking the cabin tonight then\nMarcus: 🔥🔥 can't wait";
+  document.getElementById('count').textContent = input.value.length;
+  go.disabled = false;
+  render(EXAMPLE);
+});
+
+go.addEventListener('click', readField);
+</script>
+</body>
+</html>
