@@ -111,16 +111,22 @@
   .verdict p{font-family:'Manrope',sans-serif;font-weight:600;
     font-size:clamp(18px,5vw,24px);line-height:1.4;color:var(--ink)}
 
-  .banter{margin-top:20px;display:flex;flex-direction:column;gap:12px}
-  .line{display:flex;gap:13px;align-items:flex-start;background:var(--card);
-    border:1px solid var(--card-bd);border-radius:16px;padding:15px 17px}
-  .who{flex:0 0 auto;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
-    font-family:'Manrope',sans-serif;font-weight:800;font-size:13px}
-  .who.bird{background:rgba(232,71,156,.16);color:#ff6fb0}
-  .who.bug{background:rgba(0,255,136,.14);color:#3ff0a0}
-  .line p{font-size:15.5px;color:var(--ink);padding-top:3px}
-  .line p b{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
-    color:var(--ink3);margin-bottom:3px}
+  .forces-list{margin-top:18px;display:flex;flex-direction:column;gap:8px}
+  .force-row{display:flex;gap:12px;align-items:flex-start;background:var(--card);
+    border:1px solid var(--card-bd);border-radius:13px;padding:11px 14px}
+  .force-row .fnum{flex:0 0 auto;width:24px;height:24px;border-radius:50%;display:grid;
+    place-items:center;font-family:'Manrope',sans-serif;font-weight:800;font-size:12px;
+    color:#0c0718;margin-top:1px}
+  .force-row p{font-size:14px;line-height:1.5;color:var(--ink2)}
+  .force-row p b{color:var(--ink);font-weight:600}
+  .force-row .ftype{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    margin-left:7px}
+  .gravificer{margin-top:20px;background:var(--card);border:1px solid var(--card-bd);
+    border-radius:20px;padding:20px 22px;backdrop-filter:blur(12px);
+    border-left:3px solid var(--acc1)}
+  .grav-label{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    color:#c98ce0;margin-bottom:9px}
+  .gravificer p{font-size:15.5px;line-height:1.65;color:var(--ink)}
 
   footer{margin-top:54px;text-align:center;font-size:11px;letter-spacing:.06em;color:var(--ink3)}
   footer b{color:var(--ink2);font-weight:600}
@@ -204,15 +210,16 @@
       <svg id="field" viewBox="0 0 460 500" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
     <div class="legend" id="legend"></div>
+    <div class="forces-list" id="forcesList"></div>
 
     <div class="verdict">
       <div class="lab">Gravity Pull</div>
       <p id="verdict"></p>
     </div>
 
-    <div class="banter">
-      <div class="line"><div class="who bird">BB</div><p><b>Baker Bird</b><span id="bird"></span></p></div>
-      <div class="line"><div class="who bug">BG</div><p><b>Bug</b><span id="bug"></span></p></div>
+    <div class="gravificer">
+      <div class="grav-label">The Gravificer's Read</div>
+      <p id="gravread"></p>
     </div>
   </div>
 
@@ -224,8 +231,8 @@
 
     <div class="guide-how">
       <div class="how-item"><span class="how-num">1</span><p><b>Paste a real moment.</b> A group text. An email that landed wrong. A thread that got weird. The more real, the better the reading.</p></div>
-      <div class="how-item"><span class="how-num">2</span><p><b>Read the field.</b> Each circle is a person or force — bigger circle, more weight in the situation. Each arrow is something invisible acting between them.</p></div>
-      <div class="how-item"><span class="how-num">3</span><p><b>Check the Gravity Pull.</b> One sentence naming what's really going on. Then Baker Bird says the feeling out loud, and Bug says the part nobody wanted to.</p></div>
+      <div class="how-item"><span class="how-num">2</span><p><b>Read the field.</b> Each circle is a person or force — bigger circle, more weight. Each numbered arrow is something invisible acting between them; the numbers match the list right below the field.</p></div>
+      <div class="how-item"><span class="how-num">3</span><p><b>Check the Gravity Pull.</b> One sentence naming what's really going on — then the Gravificer reads the whole board back to you and leaves you with the question underneath it.</p></div>
     </div>
 
     <div class="guide-forces-label">The five forces</div>
@@ -328,9 +335,7 @@ RULES:
     tension = unresolved friction, contradiction
 - "mass" (1-10) = how much this body dominates the situation. "strength" (1-10) = how strong the force is.
 - gravity_pull = ONE devastatingly clear sentence naming what is really going on beneath all of it.
-- Then two lines of reaction, in character:
-    Baker Bird = a red cardinal, big energy, leaps straight to the feeling, says the thing out loud.
-    Bug = the dry straight-man, names the uncomfortable truth underneath, deadpan.
+- gravificer = 2-3 sentences in the voice of the Gravificer: a signal juggler who reveals what's actually happening beneath the noise — warm, funny, sharply human, never smug. Comment on the field like a friend who can see the whole board: name the deepest pattern in plain language, then end with one short, playful, pointed question that hands the insight back to the reader.
 
 Return ONLY valid JSON, no markdown, no preamble:
 {
@@ -338,8 +343,7 @@ Return ONLY valid JSON, no markdown, no preamble:
   "bodies": [ { "id": "a", "label": "...", "mass": 7, "note": "what they secretly want, 3-6 words" } ],
   "forces": [ { "from": "a", "to": "b", "type": "pressure", "label": "...", "strength": 7 } ],
   "gravity_pull": "...",
-  "bird": "...",
-  "bug": "..."
+  "gravificer": "..."
 }
 
 ARTIFACT:
@@ -381,8 +385,15 @@ function render(d){
   document.getElementById('legend').innerHTML = types.map(t=>
     `<span><i style="background:${FORCE[t].color}"></i>${FORCE[t].label}</span>`).join('');
   document.getElementById('verdict').textContent = d.gravity_pull||'';
-  document.getElementById('bird').textContent = d.bird||'';
-  document.getElementById('bug').textContent = d.bug||'';
+  document.getElementById('gravread').textContent = d.gravificer||'';
+  const nameOf = {}; d.bodies.forEach(b=> nameOf[b.id]=b.label);
+  document.getElementById('forcesList').innerHTML = (d.forces||[])
+    .filter(f=> nameOf[f.from] && nameOf[f.to])
+    .map((f,i)=>{
+      const c=(FORCE[f.type]||FORCE.tension);
+      return `<div class="force-row"><span class="fnum" style="background:${c.color}">${i+1}</span>`+
+        `<p><b>${esc(nameOf[f.from])} → ${esc(nameOf[f.to])}</b><span class="ftype" style="color:${c.color}">${c.label||f.type}</span><br>${esc(f.label||'')}</p></div>`;
+    }).join('');
   out.classList.add('on');
   out.scrollIntoView({behavior:'smooth', block:'start'});
 }
@@ -392,8 +403,8 @@ function drawField(d){
   const narrow = (window.innerWidth||480) < 560;
   const W = narrow?384:460, H = narrow?560:500, cx=W/2, cy=narrow?258:232, R=narrow?120:140;
   const bodyBase=narrow?13:15, bodyMul=narrow?1.5:1.7;
-  const fName=narrow?12.5:11, fNote=narrow?9.5:9, fLab=narrow?12:10, lh=narrow?18:16;
-  const charW=fLab*0.56, maxLab=narrow?20:26;
+  const fName=narrow?12.5:11, fNote=narrow?9.5:9;
+  const badgeR=narrow?11:10, lh=badgeR*2;
   const noteWrap=narrow?15:18, noteMargin=narrow?52:60, ringStep=R/3;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
@@ -428,9 +439,8 @@ function drawField(d){
     const sx=A.x+(C.x-A.x)/dAC*(A.r+3),  sy=A.y+(C.y-A.y)/dAC*(A.r+3);
     const ex=B.x+(C.x-B.x)/dBC*(B.r+8),  ey=B.y+(C.y-B.y)/dBC*(B.r+8);
     const lx=0.25*sx+0.5*C.x+0.25*ex, ly=0.25*sy+0.5*C.y+0.25*ey;
-    let lab=(f.label||'').toString(); if(lab.length>maxLab) lab=lab.slice(0,maxLab-1)+'…';
-    arcs.push({f, sx, sy, ex, ey, C, conf:FORCE[f.type]||FORCE.tension,
-      lab, lx, ly, ox:lx, oy:ly, lw:lab.length*charW+14, lh});
+    arcs.push({f, n:arcs.length+1, sx, sy, ex, ey, C, conf:FORCE[f.type]||FORCE.tension,
+      lx, ly, ox:lx, oy:ly, lw:badgeR*2+4, lh});
   });
 
   // pass 2: nudge overlaps apart, spring back, then hard-clamp on-frame
@@ -469,8 +479,8 @@ function drawField(d){
   });
 
   arcs.forEach(a=>{
-    s += `<rect x="${(a.lx-a.lw/2).toFixed(1)}" y="${(a.ly-a.lh/2).toFixed(1)}" width="${a.lw.toFixed(1)}" height="${a.lh}" rx="6" fill="#0c0718" stroke="${a.conf.color}" stroke-opacity="0.55" stroke-width="1"/>`;
-    s += `<text x="${a.lx.toFixed(1)}" y="${(a.ly+fLab*0.34).toFixed(1)}" text-anchor="middle" font-family="'Inter',sans-serif" font-weight="500" font-size="${fLab}" fill="${a.conf.color}">${esc(a.lab)}</text>`;
+    s += `<circle cx="${a.lx.toFixed(1)}" cy="${a.ly.toFixed(1)}" r="${badgeR}" fill="${a.conf.color}" stroke="#0c0718" stroke-width="2"/>`;
+    s += `<text x="${a.lx.toFixed(1)}" y="${(a.ly+badgeR*0.36).toFixed(1)}" text-anchor="middle" font-family="'Manrope',sans-serif" font-weight="800" font-size="${badgeR+1}" fill="#0c0718">${a.n}</text>`;
   });
 
   svg.innerHTML = s;
@@ -503,8 +513,7 @@ const EXAMPLE = {
     { from:"priya",  to:"dana",   type:"tension",     label:"won't say what she sees", strength:5 }
   ],
   gravity_pull: "Marcus left three texts ago — everyone's still performing the trip as if he hasn't.",
-  bird: "Wait — nobody's actually going on this trip, are they?",
-  bug: "Marcus checked out at message four. The rest is choreography."
+  gravificer: "Look at where the arrows point: everyone is holding the trip up, and nobody is holding it because they want to go. Marcus said 'whatever you guys pick' — which is what people say when they've already picked. So here's the real question: is Dana booking a cabin tonight, or booking proof that the group still exists?"
 };
 
 document.getElementById('ex').addEventListener('click', ()=>{
