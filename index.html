@@ -6,156 +6,135 @@
 <title>Undercurrent — Gravificer Field Reader</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Exo+2:wght@200;300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --base:#04060a;
-    --panel:#0a0e16;
-    --panel2:#0d1420;
-    --line:#1a2436;
-    --ink:#e8f0ff;
-    --ink2:#7d8ba5;
-    --ink3:#48546b;
-    --cyan:#00d4ff;      /* pull */
-    --magenta:#ff2d78;   /* pressure */
-    --amber:#ffaa00;     /* avoidance */
-    --green:#00ff88;     /* performance */
-    --purple:#aa55ff;    /* tension */
+    --ink:#f4eefe;
+    --ink2:#bcaed6;
+    --ink3:#8578a0;
+    --card:rgba(255,255,255,.05);
+    --card-bd:rgba(255,255,255,.10);
+    --field1:#1c1030;
+    --field2:#0c0718;
+    --acc1:#b24bd6;
+    --acc2:#e8479c;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:var(--base);color:var(--ink)}
+  html,body{background:#0a0613;color:var(--ink)}
   body{
-    font-family:'Exo 2',sans-serif;font-weight:300;
-    min-height:100vh;line-height:1.65;
-    -webkit-font-smoothing:antialiased;
-    background-image:
-      linear-gradient(rgba(20,30,48,.35) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(20,30,48,.35) 1px,transparent 1px),
-      radial-gradient(circle at 50% 0%,rgba(120,40,140,.14),transparent 60%);
-    background-size:44px 44px,44px 44px,100% 100%;
+    font-family:'Inter',-apple-system,system-ui,sans-serif;font-weight:400;
+    line-height:1.62;min-height:100vh;-webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(1100px 720px at 63% 12%, rgba(158,58,196,.40), transparent 60%),
+      radial-gradient(820px 820px at 16% 96%, rgba(92,44,150,.24), transparent 60%),
+      linear-gradient(180deg,#140b26,#0a0613 72%);
+    background-attachment:fixed;
   }
-  /* faint scanlines */
-  body::after{
-    content:"";position:fixed;inset:0;pointer-events:none;z-index:100;
-    background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.13) 3px,rgba(0,0,0,.13) 4px);
-    mix-blend-mode:overlay;
-  }
-  .wrap{max-width:760px;margin:0 auto;padding:40px 20px 90px}
+  .wrap{max-width:720px;margin:0 auto;padding:46px 22px 90px}
 
-  /* ---- header ---- */
   .eyebrow{
-    font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.28em;
-    color:var(--cyan);text-transform:uppercase;margin-bottom:18px;
-    display:flex;align-items:center;gap:10px;
+    font-size:12px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;
+    color:#c98ce0;margin-bottom:16px;display:flex;align-items:center;gap:9px;
   }
-  .eyebrow::before{content:"";width:26px;height:1px;background:var(--cyan);opacity:.7}
+  .eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;
+    background:linear-gradient(135deg,var(--acc1),var(--acc2));box-shadow:0 0 12px rgba(200,90,190,.8)}
   h1{
-    font-family:'Orbitron',sans-serif;font-weight:900;
-    font-size:clamp(38px,11vw,72px);line-height:.94;letter-spacing:.02em;
-    text-transform:uppercase;margin-bottom:16px;
-    background:linear-gradient(180deg,#fff,#8fb6d6);
-    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    font-family:'Manrope',sans-serif;font-weight:800;
+    font-size:clamp(42px,12vw,76px);line-height:1;letter-spacing:-.02em;
+    margin-bottom:16px;color:var(--ink);text-shadow:0 4px 40px rgba(150,60,200,.35);
   }
-  .tagline{
-    font-weight:200;font-size:clamp(15px,4vw,18px);color:var(--ink2);
-    max-width:520px;
-  }
-  .tagline b{color:var(--ink);font-weight:400}
+  .tagline{font-size:clamp(15px,4vw,18px);color:var(--ink2);max-width:540px}
+  .tagline b{color:var(--ink);font-weight:600}
 
-  /* ---- input ---- */
   .console{
-    margin-top:38px;background:var(--panel);border:1px solid var(--line);
-    border-radius:14px;padding:20px;
+    margin-top:36px;background:var(--card);border:1px solid var(--card-bd);
+    border-radius:22px;padding:22px;backdrop-filter:blur(12px);
+    box-shadow:0 24px 60px -30px rgba(120,40,160,.6);
   }
-  .console-label{
-    font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.2em;
-    color:var(--ink3);text-transform:uppercase;margin-bottom:12px;
-    display:flex;justify-content:space-between;align-items:center;
-  }
+  .console-label{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink3);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
   textarea{
     width:100%;min-height:150px;resize:vertical;
-    background:var(--base);border:1px solid var(--line);border-radius:9px;
-    color:var(--ink);font-family:'Exo 2',sans-serif;font-weight:300;font-size:15px;
-    line-height:1.6;padding:15px;outline:none;transition:border-color .2s;
+    background:rgba(0,0,0,.28);border:1px solid var(--card-bd);border-radius:14px;
+    color:var(--ink);font-family:'Inter',sans-serif;font-size:16px;line-height:1.6;
+    padding:16px;outline:none;transition:border-color .2s,box-shadow .2s;
   }
   textarea::placeholder{color:var(--ink3)}
-  textarea:focus{border-color:var(--cyan)}
-  .row{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
-  .btn{
-    flex:1;min-width:160px;cursor:pointer;border:none;
-    font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;
-    letter-spacing:.12em;text-transform:uppercase;
-    padding:15px 18px;border-radius:9px;transition:transform .12s,box-shadow .2s,opacity .2s;
-  }
+  textarea:focus{border-color:rgba(200,90,200,.6);box-shadow:0 0 0 4px rgba(178,75,214,.14)}
+
+  .row{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;align-items:center}
+  .btn{cursor:pointer;border:none;font-family:'Manrope',sans-serif;font-weight:700;
+    font-size:15px;padding:15px 26px;border-radius:40px;transition:transform .14s,box-shadow .25s,opacity .2s}
   .btn-go{
-    background:linear-gradient(120deg,var(--cyan),#0090c8);color:#00121a;
-    box-shadow:0 0 0 1px rgba(0,212,255,.4),0 8px 30px -10px rgba(0,212,255,.6);
+    flex:1;min-width:170px;color:#fff;
+    background:linear-gradient(135deg,var(--acc1),var(--acc2));
+    box-shadow:0 12px 40px -8px rgba(210,72,168,.6),inset 0 1px 0 rgba(255,255,255,.25);
   }
-  .btn-go:hover{transform:translateY(-1px)}
+  .btn-go:hover{transform:translateY(-2px);box-shadow:0 18px 50px -8px rgba(210,72,168,.75),inset 0 1px 0 rgba(255,255,255,.25)}
   .btn-go:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
-  .btn-ex{
-    flex:0 0 auto;min-width:0;background:transparent;color:var(--ink2);
-    border:1px solid var(--line);
-  }
-  .btn-ex:hover{color:var(--ink);border-color:var(--ink3)}
+  .btn-ex{background:rgba(255,255,255,.06);color:var(--ink2);border:1px solid var(--card-bd)}
+  .btn-ex:hover{color:var(--ink);background:rgba(255,255,255,.1)}
 
-  /* ---- loading ---- */
-  .loading{display:none;margin-top:34px;text-align:center;
-    font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:.24em;
-    color:var(--cyan);text-transform:uppercase}
+  .loading{display:none;margin-top:32px;text-align:center;font-size:14px;font-weight:500;
+    letter-spacing:.04em;color:#d3a8e8}
   .loading.on{display:block}
-  .loading .dot{display:inline-block;width:7px;height:7px;border-radius:50%;
-    background:var(--cyan);margin-right:10px;animation:pulse 1s infinite}
-  @keyframes pulse{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+  .loading .dot{display:inline-block;width:8px;height:8px;border-radius:50%;
+    background:linear-gradient(135deg,var(--acc1),var(--acc2));margin-right:10px;
+    vertical-align:middle;animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
 
-  .error{display:none;margin-top:26px;padding:15px 18px;border-radius:9px;
-    background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.35);
-    color:#ffb3cd;font-size:14px;font-weight:300}
+  .error{display:none;margin-top:26px;padding:16px 18px;border-radius:14px;
+    background:rgba(232,71,120,.1);border:1px solid rgba(232,71,120,.35);color:#ffbcd2;font-size:14px}
   .error.on{display:block}
 
-  /* ---- output ---- */
-  .field-out{display:none;margin-top:40px}
+  .field-out{display:none;margin-top:42px}
   .field-out.on{display:block;animation:rise .5s ease both}
   @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
-  .situation{
-    font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:.06em;
-    color:var(--ink2);text-align:center;margin-bottom:6px;
-  }
+  .situation{font-size:13px;font-weight:500;color:var(--ink2);text-align:center;margin-bottom:12px}
   .field-frame{
-    background:radial-gradient(circle at 50% 42%,rgba(15,22,38,.9),var(--panel));
-    border:1px solid var(--line);border-radius:16px;overflow:hidden;
-    padding:6px;
+    background:radial-gradient(circle at 50% 40%,var(--field1),var(--field2));
+    border:1px solid var(--card-bd);border-radius:26px;overflow:hidden;padding:10px;
+    box-shadow:0 30px 70px -28px rgba(140,50,180,.6),inset 0 1px 0 rgba(255,255,255,.06);
   }
   svg#field{width:100%;height:auto;display:block}
 
-  .legend{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;
-    margin-top:16px}
-  .legend span{font-family:'Share Tech Mono',monospace;font-size:10.5px;
-    letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);
-    display:flex;align-items:center;gap:6px}
-  .legend i{width:16px;height:2px;border-radius:2px;display:inline-block}
+  .legend{display:flex;flex-wrap:wrap;gap:9px 18px;justify-content:center;margin-top:18px}
+  .legend span{font-size:11.5px;font-weight:500;letter-spacing:.03em;color:var(--ink2);
+    display:flex;align-items:center;gap:7px}
+  .legend i{width:16px;height:3px;border-radius:3px;display:inline-block}
 
-  .verdict{margin-top:30px;border-left:2px solid var(--amber);padding:4px 0 4px 18px}
-  .verdict .lab{font-family:'Share Tech Mono',monospace;font-size:11px;
-    letter-spacing:.24em;color:var(--amber);text-transform:uppercase;margin-bottom:8px}
-  .verdict p{font-family:'Orbitron',sans-serif;font-weight:500;
-    font-size:clamp(17px,4.8vw,22px);line-height:1.35;color:var(--ink)}
+  .verdict{margin-top:30px;background:var(--card);border:1px solid var(--card-bd);
+    border-radius:20px;padding:22px 24px;backdrop-filter:blur(12px)}
+  .verdict .lab{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    color:#e488c0;margin-bottom:10px}
+  .verdict p{font-family:'Manrope',sans-serif;font-weight:600;
+    font-size:clamp(18px,5vw,24px);line-height:1.4;color:var(--ink)}
 
-  .banter{margin-top:26px;display:flex;flex-direction:column;gap:12px}
-  .line{display:flex;gap:12px;align-items:flex-start;
-    background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:13px 15px}
-  .who{flex:0 0 auto;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
-    font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px}
-  .who.bird{background:rgba(255,45,120,.15);color:var(--magenta)}
-  .who.bug{background:rgba(0,255,136,.14);color:var(--green)}
-  .line p{font-size:15px;font-weight:300;color:var(--ink);padding-top:5px}
-  .line p b{font-weight:600;color:var(--ink2);font-family:'Share Tech Mono',monospace;
-    font-size:11px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:2px}
+  .banter{margin-top:20px;display:flex;flex-direction:column;gap:12px}
+  .line{display:flex;gap:13px;align-items:flex-start;background:var(--card);
+    border:1px solid var(--card-bd);border-radius:16px;padding:15px 17px}
+  .who{flex:0 0 auto;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
+    font-family:'Manrope',sans-serif;font-weight:800;font-size:13px}
+  .who.bird{background:rgba(232,71,156,.16);color:#ff6fb0}
+  .who.bug{background:rgba(0,255,136,.14);color:#3ff0a0}
+  .line p{font-size:15.5px;color:var(--ink);padding-top:3px}
+  .line p b{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink3);margin-bottom:3px}
 
-  footer{margin-top:52px;text-align:center;font-family:'Share Tech Mono',monospace;
-    font-size:10px;letter-spacing:.2em;color:var(--ink3);text-transform:uppercase}
-  footer b{color:var(--ink2);font-weight:400}
+  footer{margin-top:54px;text-align:center;font-size:11px;letter-spacing:.06em;color:var(--ink3)}
+  footer b{color:var(--ink2);font-weight:600}
+
+  html{-webkit-text-size-adjust:100%}
+  @media (max-width:520px){
+    .wrap{padding:34px 16px 72px}
+    .console{padding:18px;border-radius:20px}
+    .row{flex-direction:column;align-items:stretch}
+    .btn{width:100%;padding:16px 20px;min-height:52px}
+    .field-frame{border-radius:22px;padding:7px}
+    .verdict{padding:18px}
+    .line{padding:13px 14px}
+  }
 </style>
 </head>
 <body>
@@ -166,7 +145,7 @@
   <p class="tagline">Drop in something that felt <b>off</b> — a group text, an email, a comment thread, a scene. It draws the hidden field: what's actually pulling on what.</p>
 
   <div class="console">
-    <div class="console-label"><span>// Artifact In</span><span id="count">0</span></div>
+    <div class="console-label"><span>Paste the moment</span><span id="count">0</span></div>
     <textarea id="input" placeholder="Paste the thing. A conversation, a message that landed wrong, a moment you couldn't name..."></textarea>
     <div class="row">
       <button class="btn btn-go" id="go" disabled>Read the Field</button>
@@ -301,65 +280,85 @@ async function readField(){
   }finally{ setLoading(false); }
 }
 
+let lastData = null;
 function render(d){
+  lastData = d;
+  drawField(d);
+  document.getElementById('situation').textContent = (d.situation||'field reading');
+  const types = [...new Set((d.forces||[]).map(f=>f.type).filter(t=>FORCE[t]))];
+  document.getElementById('legend').innerHTML = types.map(t=>
+    `<span><i style="background:${FORCE[t].color}"></i>${FORCE[t].label}</span>`).join('');
+  document.getElementById('verdict').textContent = d.gravity_pull||'';
+  document.getElementById('bird').textContent = d.bird||'';
+  document.getElementById('bug').textContent = d.bug||'';
+  out.classList.add('on');
+  out.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function drawField(d){
   const svg = document.getElementById('field');
-  const W=460, H=500, cx=230, cy=232, R=140;
+  const narrow = (window.innerWidth||480) < 560;
+  const W = narrow?384:460, H = narrow?560:500, cx=W/2, cy=narrow?258:232, R=narrow?120:140;
+  const bodyBase=narrow?13:15, bodyMul=narrow?1.5:1.7;
+  const fName=narrow?12.5:11, fNote=narrow?9.5:9, fLab=narrow?12:10, lh=narrow?18:16;
+  const charW=fLab*0.56, maxLab=narrow?20:26;
+  const noteWrap=narrow?15:18, noteMargin=narrow?52:60, ringStep=R/3;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
   const bodies = d.bodies.slice(0,6);
   const idx = {}; bodies.forEach((b,i)=> idx[b.id]=i);
-
-  // bodies on a circle, first at top
   const pos = bodies.map((b,i)=>{
     const ang = -Math.PI/2 + i*(2*Math.PI/bodies.length);
-    return { x: cx+R*Math.cos(ang), y: cy+R*Math.sin(ang), r: 15+(b.mass||5)*1.7, b };
+    return { x: cx+R*Math.cos(ang), y: cy+R*Math.sin(ang), r: bodyBase+(b.mass||5)*bodyMul, b };
   });
 
-  // arrowhead markers
   let defs = '<defs>';
   Object.entries(FORCE).forEach(([k,v])=>{
     defs += `<marker id="ah-${k}" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="${v.color}"/></marker>`;
   });
   defs += '</defs>';
 
-  // pass 1: route each force as an outward bow, place label at the apex
+  // pass 1: outward-bow routing + label anchor at apex
   const pairCount={}; (d.forces||[]).forEach(f=>{const k=[f.from,f.to].sort().join('-');pairCount[k]=(pairCount[k]||0)+1;});
   const used={}; const arcs=[];
   (d.forces||[]).forEach(f=>{
     if(idx[f.from]===undefined || idx[f.to]===undefined) return;
     const A=pos[idx[f.from]], B=pos[idx[f.to]];
-    const mx=(A.x+B.x)/2, my=(A.y+B.y)/2;
-    const distC=Math.hypot(mx-cx,my-cy);
-    const dx=B.x-A.x, dy=B.y-A.y, len=Math.hypot(dx,dy)||1, ux=dx/len, uy=dy/len;
-    const px=-uy, py=ux;
+    const mx=(A.x+B.x)/2, my=(A.y+B.y)/2, distC=Math.hypot(mx-cx,my-cy);
+    const dx=B.x-A.x, dy=B.y-A.y, len=Math.hypot(dx,dy)||1, ux=dx/len, uy=dy/len, px=-uy, py=ux;
     const centralness=1-Math.min(distC/R,1);
-    let bow=26+centralness*54;
+    let bow=(narrow?22:26)+centralness*(narrow?44:54);
     const k=[f.from,f.to].sort().join('-'); used[k]=(used[k]||0)+1; const rank=used[k]-1;
-    if(pairCount[k]>1) bow += (rank%2?1:-1)*18*(1+Math.floor(rank/2));
-    // choose the perpendicular side that pushes the control point OUTWARD from center
+    if(pairCount[k]>1) bow += (rank%2?1:-1)*16*(1+Math.floor(rank/2));
     const cA={x:mx+px*bow,y:my+py*bow}, cB={x:mx-px*bow,y:my-py*bow};
     const C=(Math.hypot(cA.x-cx,cA.y-cy)>=Math.hypot(cB.x-cx,cB.y-cy))?cA:cB;
     const dAC=Math.hypot(C.x-A.x,C.y-A.y)||1, dBC=Math.hypot(C.x-B.x,C.y-B.y)||1;
     const sx=A.x+(C.x-A.x)/dAC*(A.r+3),  sy=A.y+(C.y-A.y)/dAC*(A.r+3);
     const ex=B.x+(C.x-B.x)/dBC*(B.r+8),  ey=B.y+(C.y-B.y)/dBC*(B.r+8);
     const lx=0.25*sx+0.5*C.x+0.25*ex, ly=0.25*sy+0.5*C.y+0.25*ey;
-    let lab=(f.label||'').toString(); if(lab.length>26) lab=lab.slice(0,25)+'…';
+    let lab=(f.label||'').toString(); if(lab.length>maxLab) lab=lab.slice(0,maxLab-1)+'…';
     arcs.push({f, sx, sy, ex, ey, C, conf:FORCE[f.type]||FORCE.tension,
-      lab, lx, ly, ox:lx, oy:ly, lw:lab.length*5.2+12, lh:16});
+      lab, lx, ly, ox:lx, oy:ly, lw:lab.length*charW+14, lh});
   });
 
-  // pass 2: nudge overlapping labels apart, spring back toward the apex
-  for(let it=0; it<120; it++){
+  // pass 2: nudge overlaps apart, spring back, then hard-clamp on-frame
+  for(let it=0; it<130; it++){
     for(let i=0;i<arcs.length;i++) for(let j=i+1;j<arcs.length;j++){
       const a=arcs[i], b=arcs[j];
       const ox=(a.lw+b.lw)/2+6-Math.abs(b.lx-a.lx);
       const oy=(a.lh+b.lh)/2+3-Math.abs(b.ly-a.ly);
       if(ox>0 && oy>0){ const push=oy/2+0.4; const sgn=(b.ly-a.ly)>=0?1:-1; a.ly-=sgn*push; b.ly+=sgn*push; }
     }
-    for(const a of arcs){ a.ly+=(a.oy-a.ly)*0.02; a.lx+=(a.ox-a.lx)*0.02; a.ly=Math.max(20,Math.min(H-40,a.ly)); }
+    for(const a of arcs){ a.ly+=(a.oy-a.ly)*0.02; a.lx+=(a.ox-a.lx)*0.02; a.ly=Math.max(lh,Math.min(H-lh,a.ly)); }
+  }
+  for(const a of arcs){
+    a.lx=Math.max(a.lw/2+4, Math.min(W-a.lw/2-4, a.lx));
+    a.ly=Math.max(lh/2+6, Math.min(H-lh/2-8, a.ly));
   }
 
-  // build svg — z-order: rings, arrows, bodies, then labels on top
+  // build: rings -> arrows -> bodies -> labels
   let s = defs;
-  for(let k=1;k<=3;k++) s += `<circle cx="${cx}" cy="${cy}" r="${46*k}" fill="none" stroke="rgba(80,120,180,0.07)" stroke-width="1"/>`;
+  for(let k=1;k<=3;k++) s += `<circle cx="${cx}" cy="${cy}" r="${(ringStep*k).toFixed(1)}" fill="none" stroke="rgba(80,120,180,0.07)" stroke-width="1"/>`;
   s += `<circle cx="${cx}" cy="${cy}" r="2.5" fill="rgba(140,170,210,.3)"/>`;
 
   arcs.forEach(a=>{
@@ -370,31 +369,19 @@ function render(d){
   pos.forEach(p=>{
     s += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${(p.r+7).toFixed(1)}" fill="none" stroke="rgba(120,160,210,.12)" stroke-width="1"/>`;
     s += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${p.r.toFixed(1)}" fill="#0d1420" stroke="#8fb6d6" stroke-width="1.5"/>`;
-    s += `<text x="${p.x.toFixed(1)}" y="${(p.y+4).toFixed(1)}" text-anchor="middle" font-family="'Orbitron',sans-serif" font-weight="700" font-size="10.5" fill="#e8f0ff">${esc(p.b.label)}</text>`;
+    s += `<text x="${p.x.toFixed(1)}" y="${(p.y+fName*0.34).toFixed(1)}" text-anchor="middle" font-family="'Inter',sans-serif" font-weight="600" font-size="${fName}" fill="#f4eefe">${esc(p.b.label)}</text>`;
     if(p.b.note){
-      const lines=wrapNote(p.b.note,18), nx=Math.max(60,Math.min(W-60,p.x));
-      lines.forEach((ln,li)=>{ s += `<text x="${nx.toFixed(1)}" y="${(p.y+p.r+13+li*11).toFixed(1)}" text-anchor="middle" font-family="'Exo 2',sans-serif" font-size="8.5" fill="#7d8ba5">${esc(ln)}</text>`; });
+      const lines=wrapNote(p.b.note,noteWrap), nx=Math.max(noteMargin,Math.min(W-noteMargin,p.x));
+      lines.forEach((ln,li)=>{ s += `<text x="${nx.toFixed(1)}" y="${(p.y+p.r+13+li*(fNote+2.5)).toFixed(1)}" text-anchor="middle" font-family="'Inter',sans-serif" font-size="${fNote}" fill="#bcaed6">${esc(ln)}</text>`; });
     }
   });
 
   arcs.forEach(a=>{
-    s += `<rect x="${(a.lx-a.lw/2).toFixed(1)}" y="${(a.ly-8).toFixed(1)}" width="${a.lw.toFixed(1)}" height="16" rx="5" fill="#04060a" stroke="${a.conf.color}" stroke-opacity="0.45" stroke-width="1"/>`;
-    s += `<text x="${a.lx.toFixed(1)}" y="${(a.ly+3).toFixed(1)}" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-size="9" fill="${a.conf.color}" letter-spacing="0.02em">${esc(a.lab)}</text>`;
+    s += `<rect x="${(a.lx-a.lw/2).toFixed(1)}" y="${(a.ly-a.lh/2).toFixed(1)}" width="${a.lw.toFixed(1)}" height="${a.lh}" rx="6" fill="#0c0718" stroke="${a.conf.color}" stroke-opacity="0.55" stroke-width="1"/>`;
+    s += `<text x="${a.lx.toFixed(1)}" y="${(a.ly+fLab*0.34).toFixed(1)}" text-anchor="middle" font-family="'Inter',sans-serif" font-weight="500" font-size="${fLab}" fill="${a.conf.color}">${esc(a.lab)}</text>`;
   });
 
   svg.innerHTML = s;
-
-  // situation + legend + text
-  document.getElementById('situation').textContent = '// ' + (d.situation||'field reading');
-  const types = [...new Set((d.forces||[]).map(f=>f.type).filter(t=>FORCE[t]))];
-  document.getElementById('legend').innerHTML = types.map(t=>
-    `<span><i style="background:${FORCE[t].color}"></i>${FORCE[t].label}</span>`).join('');
-  document.getElementById('verdict').textContent = d.gravity_pull||'';
-  document.getElementById('bird').textContent = d.bird||'';
-  document.getElementById('bug').textContent = d.bug||'';
-
-  out.classList.add('on');
-  out.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -436,6 +423,9 @@ document.getElementById('ex').addEventListener('click', ()=>{
 });
 
 go.addEventListener('click', readField);
+
+let rz=null;
+window.addEventListener('resize', ()=>{ clearTimeout(rz); rz=setTimeout(()=>{ if(lastData) drawField(lastData); }, 180); });
 </script>
 </body>
 </html>
