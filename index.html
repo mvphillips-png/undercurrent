@@ -183,6 +183,7 @@
   .attach-hint{font-size:12px;color:var(--ink3)}
   .attach.dragover .attach-btn{border-color:var(--acc1);color:var(--ink);background:rgba(178,75,214,.12)}
   .thumb{position:relative;display:inline-block}
+  .thumb[hidden]{display:none !important}
   .thumb img{height:58px;border-radius:10px;border:1px solid var(--card-bd);display:block}
   .thumb-x{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;
     border:none;cursor:pointer;background:linear-gradient(135deg,var(--acc1),var(--acc2));
@@ -190,6 +191,16 @@
   @media (max-width:520px){
     .attach{gap:10px}
     .attach-hint{display:none}
+  }
+
+  .again-row{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+  .again-row .btn-go{flex:1;min-width:170px}
+  .attach-btn.has-img{border-style:solid;font-size:12.5px;padding:8px 13px;opacity:.85}
+  .thumb-chip{display:inline-flex;align-items:center;gap:7px;height:58px;padding:0 14px;
+    border-radius:10px;border:1px solid var(--card-bd);background:rgba(0,255,136,.08);
+    color:#3ff0a0;font-size:13px;font-weight:600}
+  @media (max-width:520px){
+    .again-row{flex-direction:column}
   }
   html{-webkit-text-size-adjust:100%}
   @media (max-width:520px){
@@ -250,6 +261,11 @@
     <div class="gravificer">
       <div class="grav-label">The Gravificer's Read</div>
       <p id="gravread"></p>
+    </div>
+
+    <div class="again-row">
+      <button class="btn btn-go" id="newReading" type="button">&#8635;&nbsp; New reading</button>
+      <button class="btn btn-ex" id="reRead" type="button">Re-read this one</button>
     </div>
   </div>
 
@@ -359,10 +375,27 @@ attachZone.addEventListener('drop', e=>{
   const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
   if(f && f.type.startsWith('image/')) takeImage(f);
 });
-document.getElementById('thumbX').addEventListener('click', ()=>{
-  attachedImage=null; thumb.hidden=true; refreshGo();
-});
+document.getElementById('thumbX').addEventListener('click', clearImage);
 
+function setAttachedState(on){
+  if(on){ attachBtn.classList.add('has-img'); attachBtn.lastChild.textContent = ' Replace image'; }
+  else { attachBtn.classList.remove('has-img'); attachBtn.lastChild.textContent = ' Add a screenshot or photo'; }
+}
+thumbImg.addEventListener('error', ()=>{
+  // preview failed to draw — image data is still attached; show a chip instead of a broken icon
+  if(!attachedImage) return;
+  thumbImg.style.display='none';
+  if(!document.getElementById('thumbChip')){
+    const chip=document.createElement('span'); chip.className='thumb-chip'; chip.id='thumbChip';
+    chip.textContent='✓ Image attached';
+    thumb.insertBefore(chip, thumbImg);
+  }
+});
+function clearImage(){
+  attachedImage=null; thumb.hidden=true; thumbImg.removeAttribute('src'); thumbImg.style.display='';
+  const chip=document.getElementById('thumbChip'); if(chip) chip.remove();
+  setAttachedState(false); refreshGo();
+}
 function takeImage(file){
   const img = new Image();
   const url = URL.createObjectURL(file);
@@ -375,7 +408,9 @@ function takeImage(file){
     cv.getContext('2d').drawImage(img,0,0,w,h);
     const dataUrl = cv.toDataURL('image/jpeg', 0.85);
     attachedImage = { media_type:'image/jpeg', data:dataUrl.split(',')[1] };
+    thumbImg.style.display=''; const chip=document.getElementById('thumbChip'); if(chip) chip.remove();
     thumbImg.src = dataUrl; thumb.hidden=false;
+    setAttachedState(true);
     URL.revokeObjectURL(url); refreshGo();
   };
   img.onerror = ()=>{ URL.revokeObjectURL(url); showError("That image couldn't be read. Try a different file."); };
@@ -617,6 +652,13 @@ document.getElementById('ex').addEventListener('click', ()=>{
 });
 
 go.addEventListener('click', readField);
+document.getElementById('reRead').addEventListener('click', readField);
+document.getElementById('newReading').addEventListener('click', ()=>{
+  input.value=''; document.getElementById('count').textContent='0';
+  clearImage(); clearError(); out.classList.remove('on');
+  window.scrollTo({top:0, behavior:'smooth'});
+  setTimeout(()=> input.focus(), 450);
+});
 
 let rz=null;
 window.addEventListener('resize', ()=>{ clearTimeout(rz); rz=setTimeout(()=>{ if(lastData) drawField(lastData); }, 180); });
