@@ -202,6 +202,13 @@
   @media (max-width:520px){
     .again-row{flex-direction:column}
   }
+
+  .move-card{margin-top:14px;background:var(--card);border:1px solid var(--card-bd);
+    border-radius:20px;padding:20px 22px;backdrop-filter:blur(12px);
+    border-left:3px solid #00d4ff}
+  .move-label{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    color:#6fd9f2;margin-bottom:9px}
+  .move-card p{font-size:15.5px;line-height:1.65;color:var(--ink)}
   html{-webkit-text-size-adjust:100%}
   @media (max-width:520px){
     .wrap{padding:34px 16px 72px}
@@ -263,6 +270,11 @@
       <p id="gravread"></p>
     </div>
 
+    <div class="move-card" id="moveCard">
+      <div class="move-label">The Move</div>
+      <p id="move"></p>
+    </div>
+
     <div class="again-row">
       <button class="btn btn-go" id="newReading" type="button">&#8635;&nbsp; New reading</button>
       <button class="btn btn-ex" id="reRead" type="button">Re-read this one</button>
@@ -308,6 +320,7 @@
     <div class="guide-uses">
       <div class="guide-uses-label">When to use it</div>
       <p>Before you reply to <em>that</em> message. After the meeting that went sideways and you can't say why. When you're the group-chat historian trying to figure out where it turned. Or on a scene you're writing — if the field looks boring, the scene probably is too.</p>
+      <p>And every reading ends with <em>The Move</em> — the thing you could actually say back, ready to send. Reply to <em>that</em> message with the line that names it. Walk into the follow-up meeting holding the sentence nobody said. Settle the group chat like the historian you are.</p>
       <p class="guide-wink">Fair warning: once you can see the field, you can't unsee it.</p>
     </div>
   </section>
@@ -467,13 +480,16 @@ gravity_pull = ONE sentence in plain English naming what is really going on. Sha
 
 gravificer = 2-4 sentences in the voice of the Gravificer: warm, funny, extremely perceptive, and PLAIN. Talk like a person, not an oracle. Ground every claim in something visible in the artifact. Right-size the tone to the moment. End with one short, pointed question the reader will actually feel.
 
+move = the play. The thing the reader could actually DO or SAY next, written so they could use it as-is. If the artifact invites a reply, write the actual line — in quotes — smart, human, a little funny when the moment allows. Never smug, never a therapy script, never corporate. If the smartest move is NOT replying, say that and give the better move instead ("Don't reply in the thread. Text her alone: ..."). If the artifact is an ad or spam, the move can be the joke it deserves or the one question that pops it. 1-3 sentences total. Match the register: tender moments get a careful, warm move; petty ones can get a mischievous one.
+
 Return ONLY valid JSON, no markdown, no preamble:
 {
   "situation": "one neutral line naming what this artifact is",
   "bodies": [ { "id": "a", "label": "...", "mass": 7, "note": "..." } ],
   "forces": [ { "from": "a", "to": "b", "type": "pressure", "label": "...", "strength": 7 } ],
   "gravity_pull": "...",
-  "gravificer": "..."
+  "gravificer": "...",
+  "move": "..."
 }
 
 ARTIFACT:
@@ -526,6 +542,9 @@ function render(d){
     `<span><i style="background:${FORCE[t].color}"></i>${FORCE[t].label}</span>`).join('');
   document.getElementById('verdict').textContent = d.gravity_pull||'';
   document.getElementById('gravread').textContent = d.gravificer||'';
+  const mv = (d.move||'').trim();
+  document.getElementById('move').textContent = mv;
+  document.getElementById('moveCard').style.display = mv ? '' : 'none';
   const nameOf = {}; d.bodies.forEach(b=> nameOf[b.id]=b.label);
   document.getElementById('forcesList').innerHTML = (d.forces||[])
     .filter(f=> nameOf[f.from] && nameOf[f.to])
@@ -653,7 +672,8 @@ const EXAMPLE = {
     { from:"priya",  to:"dana",   type:"tension",     label:"won't say what she sees", strength:5 }
   ],
   gravity_pull: "Marcus left three texts ago — everyone's still performing the trip as if he hasn't.",
-  gravificer: "Look at where the arrows point: everyone is holding the trip up, and nobody is holding it because they want to go. Marcus said 'whatever you guys pick' — which is what people say when they've already picked. So here's the real question: is Dana booking a cabin tonight, or booking proof that the group still exists?"
+  gravificer: "Look at where the arrows point: everyone is holding the trip up, and nobody is holding it because they want to go. Marcus said 'whatever you guys pick' — which is what people say when they've already picked. So here's the real question: is Dana booking a cabin tonight, or booking proof that the group still exists?",
+  move: "Text Marcus alone, off the thread: \"Real answer, no group pressure — do you want to come, or do you just want to be invited?\" Either answer saves the trip. Booking the cabin first saves nothing."
 };
 
 document.getElementById('ex').addEventListener('click', ()=>{
