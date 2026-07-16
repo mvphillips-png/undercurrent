@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Undercurrent — Gravificer Field Reader</title>
+<meta name="description" content="Paste any conversation, email, or screenshot — Undercurrent draws the hidden forces underneath. See what's actually pulling on what.">
+<meta property="og:title" content="Undercurrent">
+<meta property="og:description" content="Paste any conversation — it draws the hidden forces underneath. See what's actually pulling on what.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://undercurrent.quirkyflashchronicles.com/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Undercurrent">
+<meta name="twitter:description" content="Paste any conversation — it draws the hidden forces underneath. See what's actually pulling on what.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -209,6 +217,9 @@
   .move-label{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
     color:#6fd9f2;margin-bottom:9px}
   .move-card p{font-size:15.5px;line-height:1.65;color:var(--ink)}
+
+  .guide-share{margin-top:30px}
+  .guide-share .btn{display:block;width:100%;max-width:420px;margin:0 auto}
   html{-webkit-text-size-adjust:100%}
   @media (max-width:520px){
     .wrap{padding:34px 16px 72px}
@@ -278,6 +289,7 @@
     <div class="again-row">
       <button class="btn btn-go" id="newReading" type="button">&#8635;&nbsp; New reading</button>
       <button class="btn btn-ex" id="reRead" type="button">Re-read this one</button>
+      <button class="btn btn-ex" id="shareBtn1" type="button">Share Undercurrent</button>
     </div>
   </div>
 
@@ -322,6 +334,9 @@
       <p>Before you reply to <em>that</em> message. After the meeting that went sideways and you can't say why. When you're the group-chat historian trying to figure out where it turned. Or on a scene you're writing — if the field looks boring, the scene probably is too.</p>
       <p>And every reading ends with <em>The Move</em> — the thing you could actually say back, ready to send. Reply to <em>that</em> message with the line that names it. Walk into the follow-up meeting holding the sentence nobody said. Settle the group chat like the historian you are.</p>
       <p class="guide-wink">Fair warning: once you can see the field, you can't unsee it.</p>
+      <div class="guide-share">
+        <button class="btn btn-go" id="shareBtn2" type="button">Share Undercurrent with someone</button>
+      </div>
     </div>
   </section>
 
@@ -682,6 +697,35 @@ document.getElementById('ex').addEventListener('click', ()=>{
   go.disabled = false;
   render(EXAMPLE);
 });
+
+
+// ---------- share ----------
+async function shareApp(btn){
+  const url = location.origin + location.pathname;
+  const data = {
+    title: 'Undercurrent',
+    text: "Paste any conversation — it draws the hidden forces underneath. See what's actually pulling on what.",
+    url
+  };
+  if(navigator.share){
+    try{ await navigator.share(data); return; }
+    catch(e){ if(e && e.name === 'AbortError') return; }
+  }
+  try{
+    await navigator.clipboard.writeText(url);
+    flashBtn(btn, 'Link copied!');
+  }catch(e){
+    window.prompt('Copy this link:', url);
+  }
+}
+function flashBtn(btn, msg){
+  const t = btn.textContent;
+  btn.textContent = msg;
+  btn.disabled = true;
+  setTimeout(()=>{ btn.textContent = t; btn.disabled = false; }, 1600);
+}
+document.getElementById('shareBtn1').addEventListener('click', e=> shareApp(e.currentTarget));
+document.getElementById('shareBtn2').addEventListener('click', e=> shareApp(e.currentTarget));
 
 go.addEventListener('click', readField);
 document.getElementById('reRead').addEventListener('click', readField);
